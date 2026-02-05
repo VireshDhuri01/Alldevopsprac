@@ -1,47 +1,41 @@
-pipeline {
-    agent {
-        label 'slave10'
+pipeline{
+    agent any
+    environment{
+        BUCK="viresh28"
     }
-    environment {
-  BUCK = "cicd-pipeline-buck28"
-}
-    stages {
-        stage('git clone') {
-            steps {
-                echo 'Hello World'
-                git branch: 'main', url: 'https://github.com/VireshDhuri01/Alldevopsprac.git'
+        stages{
+            stage('Hello'){
+                steps{
+                    echo "Hello This is start of pipeline"
+                }
             }
-        }
-        stage('check buck or not') {
-            steps {
-                echo 'Hello World'
-                sh '''
-                if aws s3 ls s3://${BUCK}; then
-                    echo "Buck Already Exists"
-                else
+            stage('git clone'){
+                steps{
+                    git branch: 'main', url: 'https://github.com/VireshDhuri01/Alldevopsprac.git'
+                }
+            }
+            stage('Check or make Bucket'){
+                steps{
+                    sh'''
+                    if aws s3 ls s3://${BUCK}; then
+                    echo "Buck already exists"
+                    else
                     aws s3 mb s3://${BUCK}
-                fi
-                '''
+                    fi
+                    '''
+                }
             }
-        }
-        stage('deploy to both'){
-            parallel{
-                stage('deploy to s3') {
-            steps {
-                echo 'Hello World'
-                sh 'aws s3 sync . s3://${BUCK}/'
-               
+            stage('Deploy into  Bucket'){
+                steps{
+                    sh'aws s3 sync . s3://${BUCK}/'
+                }
             }
-        }
-        stage('deploy to ec2') {
-            steps {
-                echo 'Hello World'
-                sh 'sudo rm -rf /var/www/html/*'
-                sh 'sudo cp -r . /var/www/html'
-               
-            }
-        }
+            stage('Check Pipeline'){
+                steps{
+                    sh'''
+                    echo "Hey, The Trigger and Pipeline is working fine" >> result.txt
+                    '''
+                }
             }
         }
     }
-}
